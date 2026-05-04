@@ -1,10 +1,16 @@
 from typing import TypedDict
+
 class State(TypedDict):
-    job_url : str 
+    job_url: str
     job_description: str
-    researched_info: str
-    modified_resume: str
-    modified_cl: str
-    output_score: int
-    suggested_improvements : str
-    
+    company_background: str
+    researched_summary: str
+    researched_news: list[str]
+    analyzed_requirements: str
+    analyzed_keywords: list[str]
+    written_resume: str
+    written_letter: str
+    critique: str
+    score: int
+    suggestions: list[str]
+    loops: int

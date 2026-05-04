@@ -3,10 +3,10 @@ langchain-groq
 langchain-community
 fastapi
 tavily-python
-langchain
+langchain-core
 python-dotenv
 pydantic
 langsmith
 uvicorn
-    
+requests
  
