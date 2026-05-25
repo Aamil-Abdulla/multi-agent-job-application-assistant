@@ -44,5 +44,5 @@ def run_critics(state : State) -> dict:
     return  {
         "critique" : critic_output.critique,
         "score" : critic_output.score,
-        "suggestions" : critic_output.suggestions
+        "suggestions" : critic_output.suggestions 
     }
