@@ -2,6 +2,7 @@ from typing import TypedDict
 
 class State(TypedDict):
     job_url: str
+    background: str
     job_description: str
     company_background: str
     researched_summary: str

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Job Application Assistant</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: #0d1117; color: #e6edf3;
+    padding: 40px 20px; line-height: 1.6;
+  }
+  .container { max-width: 860px; margin: 0 auto; }
+  h1 { font-size: 1.8rem; margin-bottom: 6px; color: #58a6ff; }
+  .sub { color: #8b949e; margin-bottom: 28px; font-size: 0.95rem; }
+  label { display: block; margin: 16px 0 6px; font-weight: 600; font-size: 0.9rem; }
+  input, textarea {
+    width: 100%; background: #161b22; border: 1px solid #30363d;
+    border-radius: 8px; color: #e6edf3; padding: 12px; font-size: 0.95rem;
+    font-family: inherit; resize: vertical;
+  }
+  input:focus, textarea:focus { outline: none; border-color: #58a6ff; }
+  button {
+    margin-top: 20px; background: #238636; color: #fff; border: none;
+    padding: 12px 24px; border-radius: 8px; font-size: 1rem; cursor: pointer;
+    font-weight: 600; width: 100%;
+  }
+  button:hover { background: #2ea043; }
+  button:disabled { background: #30363d; cursor: not-allowed; }
+  .card {
+    background: #161b22; border: 1px solid #30363d; border-radius: 10px;
+    padding: 20px; margin-top: 18px;
+  }
+  .card h3 { color: #58a6ff; margin-bottom: 10px; font-size: 1.05rem; }
+  .score-badge {
+    display: inline-block; padding: 4px 14px; border-radius: 20px;
+    font-weight: 700; font-size: 1.1rem;
+  }
+  .results { margin-top: 30px; display: none; }
+  pre { white-space: pre-wrap; word-wrap: break-word; font-family: inherit; }
+  .chip {
+    display: inline-block; background: #1f6feb33; color: #58a6ff;
+    padding: 3px 10px; border-radius: 14px; margin: 3px; font-size: 0.85rem;
+  }
+  li { margin-left: 18px; margin-bottom: 6px; }
+  .loader { color: #8b949e; margin-top: 20px; display: none; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Multi-Agent Job Application Assistant</h1>
+  <p class="sub">Researcher, Analyzer, Writer, and Critic agents working together.</p>
+
+  <label>Job URL (for company research)</label>
+  <input id="jobUrl" placeholder="https://company.com/careers/ai-engineer">
+
+  <label>Job Description (paste full text)</label>
+  <textarea id="jobDesc" rows="7" placeholder="Paste the full job description here"></textarea>
+
+  <label>Your Background</label>
+  <textarea id="background" rows="5" placeholder="Your degree, projects, skills"></textarea>
+
+  <button id="genBtn" onclick="generate()">Generate Application</button>
+
+  <p class="loader" id="loader">Agents are working, this can take 30 to 60 seconds...</p>
+
+  <div class="results" id="results">
+    <div class="card">
+      <h3>Critic Score</h3>
+      <span class="score-badge" id="scoreBadge"></span>
+    </div>
+    <div class="card">
+      <h3>Company Summary</h3>
+      <pre id="summary"></pre>
+    </div>
+    <div class="card">
+      <h3>Recent News</h3>
+      <ul id="news"></ul>
+    </div>
+    <div class="card">
+      <h3>Analyzed Requirements</h3>
+      <pre id="requirements"></pre>
+    </div>
+    <div class="card">
+      <h3>Keywords</h3>
+      <div id="keywords"></div>
+    </div>
+    <div class="card">
+      <h3>Tailored Resume Bullets</h3>
+      <pre id="resume"></pre>
+    </div>
+    <div class="card">
+      <h3>Cover Letter</h3>
+      <pre id="letter"></pre>
+    </div>
+    <div class="card">
+      <h3>Critique</h3>
+      <pre id="critique"></pre>
+    </div>
+    <div class="card">
+      <h3>Suggestions</h3>
+      <ul id="suggestions"></ul>
+    </div>
+  </div>
+</div>
+
+<script>
+async function generate() {
+  const btn = document.getElementById('genBtn');
+  const loader = document.getElementById('loader');
+  const results = document.getElementById('results');
+
+  const payload = {
+    job_url: document.getElementById('jobUrl').value,
+    job_description: document.getElementById('jobDesc').value,
+    background: document.getElementById('background').value
+  };
+
+  if (!payload.job_description || !payload.background) {
+    alert('Please fill in the job description and your background.');
+    return;
+  }
+
+  btn.disabled = true;
+  loader.style.display = 'block';
+  results.style.display = 'none';
+
+  try {
+    const res = await fetch('/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || 'Request failed');
+
+    const score = data.score || 0;
+    const badge = document.getElementById('scoreBadge');
+    badge.textContent = score + ' / 10';
+    badge.style.background = score >= 7 ? '#238636' : '#9e6a03';
+    badge.style.color = '#fff';
+
+    document.getElementById('summary').textContent = data.researched_summary || 'N/A';
+
+    const news = document.getElementById('news');
+    news.innerHTML = '';
+    (data.researched_news || []).forEach(n => {
+      const li = document.createElement('li');
+      li.textContent = n;
+      news.appendChild(li);
+    });
+
+    document.getElementById('requirements').textContent = data.analyzed_requirements || 'N/A';
+
+    const kw = document.getElementById('keywords');
+    kw.innerHTML = '';
+    (data.analyzed_keywords || []).forEach(k => {
+      const span = document.createElement('span');
+      span.className = 'chip';
+      span.textContent = k;
+      kw.appendChild(span);
+    });
+
+    document.getElementById('resume').textContent = data.written_resume || 'N/A';
+    document.getElementById('letter').textContent = data.written_letter || 'N/A';
+    document.getElementById('critique').textContent = data.critique || 'N/A';
+
+    const sug = document.getElementById('suggestions');
+    sug.innerHTML = '';
+    (data.suggestions || []).forEach(s => {
+      const li = document.createElement('li');
+      li.textContent = s;
+      sug.appendChild(li);
+    });
+
+    results.style.display = 'block';
+  } catch (err) {
+    alert('Error: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    loader.style.display = 'none';
+  }
+}
+</script>
+</body>
+</html>

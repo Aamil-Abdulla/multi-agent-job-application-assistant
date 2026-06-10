@@ -38,11 +38,18 @@ def critique_checker(job_description : str , analyzed_requirements : str , analy
     ]
     return structured_output.invoke(llm_messages)
 
-
-def run_critics(state : State) -> dict:
-    critic_output = critique_checker(state["job_description"], state["analyzed_requirements"], state["analyzed_keywords"], state["written_resume"], state["written_letter"])
-    return  {
-        "critique" : critic_output.critique,
-        "score" : critic_output.score,
-        "suggestions" : critic_output.suggestions 
+def run_critics(state: State) -> dict:
+    print("----- Critic Agent -----")
+    critic_output = critique_checker(
+        state["job_description"],
+        state["analyzed_requirements"],
+        state["analyzed_keywords"],
+        state["written_resume"],
+        state["written_letter"]
+    )
+    return {
+        "critique": critic_output.critique,
+        "score": critic_output.score,
+        "suggestions": critic_output.suggestions,
+        "loops": state["loops"] + 1
     }
